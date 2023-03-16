@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+
+  broker-service:
+    build:
+      context: ./../broker-service
+      dockerfile: ./../broker-service/broker-service.dockerfile
+    restart: always
+    ports:
+      # map port 8080 on my localhost to 80 on the docker image. So we should be able to hit this service on port 8080. Why 80?
+      # Since this app would be listening on port 80(webPort var in cmd/api/main)
+      - "8080:80"
+
+    # We don't have to set deploy's mode, but we'll be using it later on.
+    deploy:
+      mode: replicated
+      replicas: 1
