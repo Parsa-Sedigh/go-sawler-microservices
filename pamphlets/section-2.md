@@ -66,5 +66,29 @@ Then go to localhost:80.
 ## 15-7. Creating some helper functions to deal with JSON and such
 
 ## 16-8. Simplifying things with a Makefile (Mac & Linux)
+Put the makefile in the `project` folder and make sure it's called `Makefile`.
+
+To use it, let's make sure docker-compose is not running(run this command in project folder):
+```shell
+docker-compose down
+```
+Then run:
+```shell
+make stop
+make up_build
+```
+
+Currently, in up_build of Makefile, it builds a brokerApp executable and we're doing the same thing all over again in it's dockerfile too.
+So remove the build related commands in it's dockerfile. In other words, we're building the executable twice! Once in the dockerfile and 
+once in the Makefile.
+
+Now running the `make up_build` would be faster(make sure you run `make down` first).
+
+If you want to start the frontend:
+```shell
+make start
+# to bring it down:
+make down
+```
 
 ## 17-9. Simplifying things with a Makefile (Windows)

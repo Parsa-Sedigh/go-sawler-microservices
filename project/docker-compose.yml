@@ -16,3 +16,38 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+
+  authentication-service:
+    build:
+      context: ./../authentication-service/
+      dockerfile: ./../authentication-service/authentication-service.dockerfile
+    restart: always
+    ports:
+      # Specify a port on our machine(8081 because it's not being used) and map it to port 80 in the docker image
+      - "8081:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      # We wrote postgres in host=postgres, because we named it `postgres` some lines below(the `service name` we want to connect)
+      # Also we specified user and password in the postgres service definition just some lines below from here
+      DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+
+  postgres:
+    image: 'postgres:14.2'
+    ports:
+      - "5432:5432" # map port 5432 on our local machine to port 5432 in the docker container.
+    restart: always
+
+    # we don't need this, but we want to put it
+    deploy:
+      mode: replicated
+      replicas: 1 # we only want 1 instance
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: users
+    volumes:
+      # This will be a file on our local computer. Note: When we use `:` here, it means `map to`. The second half after colon is inside
+      # our docker container
+      - ./db-data/postgres/:/var/lib/postgresql/data/
