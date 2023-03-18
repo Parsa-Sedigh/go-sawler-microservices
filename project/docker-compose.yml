@@ -33,6 +33,15 @@ services:
       # Also we specified user and password in the postgres service definition just some lines below from here
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
 
+  logger-service:
+    build:
+      context: ./../logger-service
+      dockerfile: ./../logger-service/logger-service.dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+
   postgres:
     image: 'postgres:14.2'
     ports:
@@ -51,3 +60,23 @@ services:
       # This will be a file on our local computer. Note: When we use `:` here, it means `map to`. The second half after colon is inside
       # our docker container
       - ./db-data/postgres/:/var/lib/postgresql/data/
+
+      # Run the init db sql scripts into the postgres docker container in order to set up the tables and data:
+      - .:/docker-entrypoint-initdb.d/
+
+  mongo:
+    image: 'mongo:4.2.16-bionic'
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: logs
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - ./db-data/mongo/:/data/db
+
+  mailhog:
+    image: 'mailhog/mailhog:latest'
+    ports:
+      - "1025:1025"
+      - "8025:8025"
