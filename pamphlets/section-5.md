@@ -55,5 +55,21 @@ send lots of spam emails.
 Before going to prod, change `MarshalIndent` calls to `Marshal`.
 
 ## 48-9. Updating the front end to send mail
+To run:
+```shell
+make down
+make up_build
+make start
+```
+
+Now open mailhog on `localhost:1025` and our web app on `localhost`.
+
+After sending the email, look it up on mailhog dashboard.
 
 ## 49-10. A note about mail and security
+Currently, the user can send the appropriate json payload to the broker service, which communicates with the mail microservice and that sends
+mail and OFC in production, I would never let that broker even accept a command to send mail. Instead, we would do things like this for example:
+If we wanted to have an email everytime someone unsuccessfully logs into the system, I would let the broker communicate with the auth service,
+find out that user is not able to authenticate and then have the auth microservice talk directly to the mail microservice and send out the
+appropriate notification saying someone tried to login but was unsuccessful. In other words, every microservice that needs to, cold communicate
+with the mail microservice but the broker would never do so directly.
