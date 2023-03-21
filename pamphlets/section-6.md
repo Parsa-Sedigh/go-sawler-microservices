@@ -77,7 +77,27 @@ make up_build
 
 ## 59-10. Updating the broker to interact with RabbitMQ
 
-
 ## 60-11. Writing logic to Emit events to RabbitMQ
+Instead of logItem in broker-service, we created other functions to push events onto the queue named `logEventViaRabbit` 
+
 ## 61-12. Adding a new function in the Broker to log items via RabbitMQ
+
 ## 62-13. Trying things out
+To test things, in project folder:
+```shell
+make up_build
+
+make stop
+make start
+```
+RabbitMQ takes a while to start. To make sure it's ready, in docker-dashboard you can look at the logs of `project-broker-service-1` container.
+Also before testing, make sure the logs collection in mongodb is empty, so that you can see the new ones.
+
+After hitting the `test log` btn, look at mongo to see the log.
+
+Currently, we have two means of communicating between microservices:
+- we can POST json: marshaling, sending it, unmarshal it, then POST back a json response
+- push things into a queue: When you have lots of microservices is really great, just make sure the consumer
+or listener handles all of the cases and has a sensible default case
+
+Another means of communicating between microservices which is faster than JSON and it's called RPC.
