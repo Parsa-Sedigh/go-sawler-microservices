@@ -5,7 +5,8 @@ We want the frontend try to authenticate through broker. The broker calls the au
 that user is able to authenticate and then sends back the appropriate res.
 
 We don't necessarily have to use the broker service to authenticate. We could contact the auth service directly, we have to have
-it's port exposed to the internet. But only using the broker service to authenticate also works. 
+it's port exposed to the internet. But only using the broker service to authenticate also works(we could expose them but we need
+to use a firewall).
 
 Initially we'll use the broker service as the single point of entry.
 
