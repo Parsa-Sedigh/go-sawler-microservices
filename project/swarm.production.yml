@@ -53,11 +53,10 @@ services:
   rabbitmq:
     image: 'rabbitmq:3.9-alpine'
     deploy:
-      mode: global # means we're only gonna have one instance of this
+      mode: global
 
   mailhog:
-#    image: 'mailhog/mailhog:latest'
-    image: 'arjenz/mailhog:latest' # I used this image instead of the one in course, since the official image is not supported on apple silicon
+    image: 'arjenz/mailhog:latest'
     ports:
       - "8025:8025"
     deploy:
@@ -92,13 +91,13 @@ services:
       - .:/docker-entrypoint-initdb.d/
 
   caddy:
-    image: parsa7899/micro-caddy:1.0.0
+    image: parsa7899/micro-caddy-production:1.0.0
     deploy:
       mode: replicated
       replicas: 1
     ports:
       - "80:80"
-      - "443:443" # the secure port(SSL encrypted)
+      - "443:443"
     volumes:
       - caddy_data:/data
       - caddy_config:/config

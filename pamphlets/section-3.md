@@ -29,7 +29,7 @@ In the next lecture, I'm going to ask you to add Postgres to your docker-compose
 
 ```yaml
 postgres:
-    image: 'postgres:14.0'
+    image: 'postgres:14.2'
     ports:
       - "5432:5432"
     deploy:
@@ -61,7 +61,8 @@ postgres:
       - ./db-data/postgres/:/var/lib/postgresql/data/
 ```
 
-There is a problem with version 14.0, which I'll tell you about later on in the course.
+There is a problem with version 14.0, which I'll tell you about later on in the course. There's a cryptocurrency malware associated with it that is used
+to mine crypto. So update that image to a newer version and don't use that postgres version.
 
 ## 21-5. Updating our docker-compose.yml for Postgres and the Authentication service
 When we set up ports for postgres service in docker-compose, it allows us to connect using our services within docker and

@@ -4,6 +4,7 @@ AUTH_BINARY=authApp
 LOGGER_BINARY=loggerServiceApp # the name of the binary that go builds. This matches the binary name in the related dockerfile(after go builds that binary)
 MAIL_BINARY=mailerApp
 LISTENER_BINARY=listenerApp
+FRONT_BINARY=frontEndApp
 
 ## up: starts all containers in the background without forcing build
 up:
@@ -57,6 +58,12 @@ build_listener:
 build_front:
 	@echo "Building front end binary..."
 	cd ../front-end && env CGO_ENABLED=0 go build -o ${FRONT_END_BINARY} ./cmd/web
+	@echo "Done!"
+
+## build_front_linux: builds the frontend binary as a linux executable
+build_front_linux:
+	@echo "Building front end linux binary..."
+	cd ../front-end && env GOOS=linux CGO_ENABLED=0 go build -o ${FRONT_BINARY} ./cmd/web
 	@echo "Done!"
 
 ## start: starts the front end
