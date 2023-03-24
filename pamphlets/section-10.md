@@ -6,12 +6,52 @@ We're gonna bring up our k8s cluster using minikube. Another tool we need to hav
 Now let's deploy a cluster on our local machine.
 
 ## 105-2. Installing minikube
+It allows you to set up a local k8s cluster and manage it.
+
+He installed both minikube and kubectl using binary link.
+
 ### 2.1 Minikube
+
 ## 106-3. Installing kubectl
+
 ### 3.1 kubectl
+
 ## 107-4. Initializing a cluster
+In docker dashboard, make sure you have no containers running(see the containers page).
+
+This is not gonna work in first try:
+```shell
+# should print: Done! Kubectl is now configured to use "minikube" cluster and "default" namespace by default
+minikube start --nodes=2
+
+minikube status
+```
+
+Now we have 2 containers running(you can see this in docker dashboard too):
+- minikube
+- minikube-m02
+
 ## 108-5. Bringing up the k8s dashboard
+Run:
+```shell
+minikube stop
+```
+The reason for this is one of the irritating things about minikube is when our system goes to sleep, when we wake it up,
+we have to restart everything because minikube just won't come up. So before we finish for the day(before you want your system
+goes to sleep), run the above command and when
+you come back, run:
+```shell
+minikube start
+```
+
+minikube has k8s dashboard installed by default. To look at minikube(k8s) dashboard, run:
+```shell
+minikube dashboard
+```
+
 ## 109-6. Creating a deployment file for Mongo
+
+
 ## 110-7. Creating a deployment file for RabbitMQ
 ## 111-8. Creating a deployment file for the Broker service
 ## 112-9. When things go wrong...
