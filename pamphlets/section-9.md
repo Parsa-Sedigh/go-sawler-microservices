@@ -494,13 +494,143 @@ Now since we have a `volumes` section in our swarm definition, we should remembe
 production servers, we'll have to do it in the same folder where the folders specified in `volumes` section exist which means we need to create
 them.
 
-So SSH into node-1 and in root level of that server(`/`):
+So SSH into node-1 and in root level of that server(`/`). You can put it whereever you want:
 ```shell
 sudo mkdir swarm
+
+sudo chown <username>:<username> swarm/
+cd swarm
+mkdir caddy_data
+mkdir caddy_config
+vi swarm.yml # copy swarm.production.yml there
 ```
 
+Now let's deploy the swarm(you have to be in the folder that has those caddy folders and the swarm.yml):
+```shell
+sudo docker stack deploy -c swarm.yml myapp
+```
+Now give it some time to bring everything up. Because it takes a while to initialize the DB firs time around.
+
 ## 101-25. Trying things out, and correcting some mistakes
+Go to sth like: `swarm.<domain>`. If it's ok, it means the swarm is running and the caddy and front-end microservices are OK.
+
+Add you user to docker group, just so we don't have to keep typing sudo everytime we execute a command for `docker`:
+```shell
+sudo usermod -aG docker <user>
+```
+
+```shell
+docker node ps
+```
+
+Now in swarm directory, create the folders for docker volumes that we missed for postgres and mongo:
+```shell
+# in swarm directory
+mkdir db-data
+mkdir db-data/mongo
+mkdir db-data/postgres
+
+# Now stop the swarm since it's not running properly
+docker stack rm <name>
+```
+
+Another problem is some of our services that are defined as `global`, are running with multiple instances, but on our local dev env, they were
+ok which means keep one instance of this service running, on every node of the swarm and that's not what we want. We want `mode: replicated` with
+`replicas: 1` for rabbit, mailhog and mongo, so change this in swarm.production.yml .
+
+Another problem is in mongo service, we have a volume for mongo which means we tie a local folder on server to a folder in container and
+that'll work fine unless mongo gets moved at some point to a different node, one that doesn't have that directory. To fix this,
+add `placement` with constraints for mongo and also for postgres and caddy.
+
+Now put the new content of swarm.production onto the respective file on server. Then deploy the swarm again.
+
+To get updates in real time:
+```shell
+watch docker node ps
+
+docker service ls
+```
+
 ## 102-26. Populating the remote database using an SSH tunnel
+Let's connect to postgres running in docker swarm. But tutor never does this. He almost never run a DB in a swarm or even in k8s. Instead
+he connects to some remote service.
+
+In DB client, connect to a remote server(use the IP of server as host) and turn on the `SSH tunnel` because we're exposing port 5432 from our
+docker swarm, we're just blocking it using the firewall.
+
+Create a DB called users and then run the `users.sql` to init the tables and data.
+
 ## 103-27. Enabling SSL certificates on the Caddy microservice
+We're already listening on port 443(https) on caddy and we already have defined the mounted volumes(caddy_data and caddy_config) to store
+the SSL certificates.
+
+Update front-end service BROKER_URL env var to have https instead of http.
+
+Delete `:80` from first virtual host(swarm.<domain>) and second one which is gonna tell caddy: hey, we're gonna be using
+auto-generated and auto-managed SSL certificates also `import security` in `swarm.<domain>`.
+
+Now we need to build and tag a new version of caddy docker image and then update the docker image version of caddy in swarm.production :
+```shell
+# In project folder
+docker build -f caddy.production.dockerfile -t parsa7899/micro-caddy-production:1.0.1 .
+docker push parsa7899/micro-caddy-production:1.0.1
+```
+
+Update the swarm.yml in manager node with swarm.production .
+
+Now:
+```shell
+docker pull parsa7899/micro-caddy-production:1.0.1
+```
+
+If we were updating just one service, we **could** run:
+```shell
+docker service scale myapp_caddy=2
+```
+
+After it scaled it, we update the image:
+```shell
+# myapp_caddy is the service name
+docker service update --image parsa7899/micro-caddy-production:1.0.1 myapp_caddy
+```
+The above command will update all of the services, one at a time, so we don't get downtime.
+
+This is great for updating **individual** service. But since we changed swarm deployment file on our server(in this case we changed
+an env var in front-end service), we need to bring down the swarm:
+```shell
+docker stack rm myapp # after this, give it a couple of seconds to ensure everything goes down
+```
+
+Now we deploy it again and this will use the new env var. This is a thing you're not going to do in the middle of the day, you'll do it
+late at night when nobody's on the server and you might give people warning beforehand:
+```shell
+docker stack deploy -c swarm.yml myapp
+```
+
+Now let's see what service is running on what server(we have multiple servers right?). The below command, shows us on the current node,
+which services are running:
+```shell
+docker node ps
+```
+
+To see services running on a specific node:
+```shell
+docker node ps node-2
+```
+
+Go to swarm.<domain> to see https and test things.
+
+Currently, there's a problem. Currently, we have a constraint on caddy, postgres and mongo that ensures those services are always going to be
+deployed(even if we have multiple instances of each one of them) on a specific node and the reason for doing this, is volumes for those services.
+It would be nice if we would have that information(the data that is in the folders specified for volumes), available on every node and if we're
+able to do that, then we'd be able to deploy those services on any node we want.
+
+There are a couple of ways to do that. One is `GlusterFS`. If we install it on our master node and all our worker nodes and share a particular volume
+or disk directory from one node to others, anytime a file goes into the directory on one node, it gets automatically copied to all nodes.
+
+An alternative approach would be to use `SSHFS` which is an SSH file system, you can mount remote filesystems over SSH. It's a bit slower
+than Gluster but in our case, everythig is in the same datacenter and we're not talking about copying huge amounts of data. So it's not
+that much different.
+
 ### 27.1 GlusterFS
 ### 27.2 sshfs

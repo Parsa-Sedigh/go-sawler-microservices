@@ -48,26 +48,33 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      BROKER_URL: "http://backend"
+#      BROKER_URL: "http://backend"
+       BROKER_URL: "https://broker.<domain>"
 
   rabbitmq:
     image: 'rabbitmq:3.9-alpine'
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
 
   mailhog:
     image: 'arjenz/mailhog:latest'
     ports:
       - "8025:8025"
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
 
   mongo:
     image: 'mongo:4.2.16-bionic'
     ports:
       - "27017:27017"
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-1 # node-1 is what we named our host in hosts file
     environment:
       MONGO_INITDB_DATABASE: logs
       MONGO_INITDB_ROOT_USERNAME: admin
@@ -82,6 +89,9 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-1
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -91,10 +101,13 @@ services:
       - .:/docker-entrypoint-initdb.d/
 
   caddy:
-    image: parsa7899/micro-caddy-production:1.0.0
+    image: parsa7899/micro-caddy-production:1.0.1
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-1
     ports:
       - "80:80"
       - "443:443"

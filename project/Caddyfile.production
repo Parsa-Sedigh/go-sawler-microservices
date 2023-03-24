@@ -21,13 +21,14 @@
 	}
 }
 
-swarm.<your domain>:80 {
+swarm.<your domain> {
 	encode zstd gzip
 	import static
+	import security
 
 	reverse_proxy  http://front-end:8081
 }
 
-broker.<domain>:80 {
+broker.<domain> {
 	reverse_proxy http://broker-service:8080
 }
