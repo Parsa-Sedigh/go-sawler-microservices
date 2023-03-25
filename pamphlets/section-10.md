@@ -71,7 +71,13 @@ When we deploy these files, yml is converted by kubectl into json.
 
 **Note:** In production, we will never put mongo, rabbit, postgres and ... in a docker swarm or k8s cluster. Instead, we would 
 have a mongo, rabbit or ... service running external to k8s and swarm and connect to that.
-For rabbit, we would have an installation of rabbit on another server. 
+For rabbit, we would have an installation of rabbit on another server. Why?
+
+Because pods in a cluster or containers in a swarm, are by their nature, **transient**. They can disappear without warning, for whatever reason.
+They might get moved to another node, they might have crashed for whatever reason, maybe because it's starved of resources or ... .
+So we can't always depend upon that pod in k8s or that container in swarm to always be there. The easiest solution for that is to have a 
+postgres DB, maybe a managed version from digital ocean or ... , or maybe you set up another VPS and install postgres in there or set up
+several VPSs and set up a postgres **cluster** which is even safer, the same thing for rabbit and mongo.
 
 The ports in template>spec>containers>ports doesn't do anything, it's for other people who have to read that file. So it's purely descriptive.
 
